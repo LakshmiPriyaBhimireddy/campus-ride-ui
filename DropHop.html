@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DropHop</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a clean look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+        /* Simple animation for modals */
+        .modal-enter {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Main Container -->
+    <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-6">
+
+        <!-- ======================= -->
+        <!--    AUTHENTICATION VIEW  -->
+        <!-- ======================= -->
+        <div id="auth-view" class="view active">
+            <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md mx-auto mt-12 text-center">
+                <h1 class="text-3xl font-bold text-indigo-600 mb-2">DropHop</h1>
+                <p class="text-gray-600 mb-8">Your trusted campus carpooling community.</p>
+
+                <!-- Login / Sign Up Forms -->
+                <div id="login-form-container">
+                    <h2 class="text-2xl font-semibold mb-4 text-left">Login</h2>
+                    <form id="login-form">
+                        <input type="email" id="login-email" placeholder="Campus Email (.edu)" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                        <input type="password" id="login-password" placeholder="Password" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">Login</button>
+                    </form>
+                    <p class="mt-4 text-sm">Don't have an account? <a href="#" id="show-signup" class="text-indigo-600 font-semibold hover:underline">Sign Up</a></p>
+                </div>
+
+                <div id="signup-form-container" class="hidden">
+                    <h2 class="text-2xl font-semibold mb-4 text-left">Create Account</h2>
+                    <form id="signup-form">
+                        <input type="email" id="signup-email" placeholder="Campus Email (.edu)" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                        <input type="password" id="signup-password" placeholder="Password (min. 6 characters)" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                        <button type="submit" class="w-full bg-green-500 text-white p-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">Sign Up</button>
+                    </form>
+                    <p class="mt-4 text-sm">Already have an account? <a href="#" id="show-login" class="text-indigo-600 font-semibold hover:underline">Login</a></p>
+                </div>
+                 <p id="auth-error" class="text-red-500 mt-4 text-sm"></p>
+            </div>
+        </div>
+
+        <!-- ======================= -->
+        <!--      MAIN APP VIEW      -->
+        <!-- ======================= -->
+        <div id="main-app-view" class="view">
+            <!-- Header & Navigation -->
+            <header class="bg-white p-4 rounded-2xl shadow-md mb-6 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-indigo-600">DropHop</h1>
+                <nav class="flex items-center space-x-4">
+                    <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-view="find-ride-view">Find Ride</a>
+                    <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-view="offer-ride-view">Offer Ride</a>
+                    <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-view="my-rides-view">My Rides</a>
+                    <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">Logout</button>
+                </nav>
+            </header>
+
+            <!-- Sub-views within the Main App -->
+            <main>
+                <!-- Find a Ride View -->
+                <div id="find-ride-view" class="sub-view active">
+                    <div class="bg-white p-6 rounded-2xl shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">Find a Ride</h2>
+                        <div class="flex space-x-4 mb-6">
+                            <input id="search-pickup" type="text" placeholder="Pickup Location (e.g., Library)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input id="search-dropoff" type="text" placeholder="Drop-off Location (e.g., North Dorms)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button id="search-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700">Search</button>
+                        </div>
+                        <div id="ride-listings" class="space-y-4">
+                            <!-- Ride cards will be injected here by JavaScript -->
+                            <p class="text-gray-500 text-center">No rides found. Try a different search or check back later!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Offer a Ride View -->
+                <div id="offer-ride-view" class="sub-view hidden">
+                     <div class="bg-white p-6 rounded-2xl shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">Offer a Ride</h2>
+                        <form id="offer-ride-form" class="space-y-4">
+                            <input type="text" id="offer-pickup" placeholder="Pickup Location" class="w-full p-3 border rounded-lg" required>
+                            <input type="text" id="offer-dropoff" placeholder="Drop-off Location" class="w-full p-3 border rounded-lg" required>
+                            <input type="datetime-local" id="offer-time" class="w-full p-3 border rounded-lg" required>
+                            <input type="number" id="offer-seats" placeholder="Available Seats" class="w-full p-3 border rounded-lg" min="1" required>
+                            <input type="number" id="offer-charge-per-km" placeholder="Charge per km (₹)" class="w-full p-3 border rounded-lg" min="1" step="0.5" required>
+                            <button type="submit" class="w-full bg-green-500 text-white p-3 rounded-lg font-semibold hover:bg-green-600">Post Ride</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- My Rides View -->
+                <div id="my-rides-view" class="sub-view hidden">
+                    <div class="bg-white p-6 rounded-2xl shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">My Rides</h2>
+                        <div id="my-rides-list" class="space-y-4">
+                           <p class="text-gray-500 text-center">You haven't offered or booked any rides yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Floating Action Buttons: SOS and Chat -->
+            <div class="fixed bottom-6 right-6 space-y-4 z-50">
+                <button id="sos-btn" class="bg-red-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-transform hover:scale-110">
+                    <span class="text-2xl font-bold">SOS</span>
+                </button>
+                 <button id="chat-btn" class="bg-indigo-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 transition-transform hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.828 8.828 T0 01-4.321-.988l-3.68 1.226a.5.5 0 01-.616-.616l1.227-3.68A8.967 8.967 0 011 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.415 14.183l.169.173a6.963 6.963 0 0010.832-1.835 7.003 7.003 0 00-1.835-10.832A6.963 6.963 0 002.78 11.51l.173.169.16.155-1.02 3.06 3.06-1.02.155.16z" clip-rule="evenodd" /></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================= -->
+    <!--         MODALS          -->
+    <!-- ======================= -->
+    
+    <!-- Ride Details & Booking Modal -->
+    <div id="ride-details-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div id="ride-details-content" class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full modal-enter">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+    
+    <!-- Payment Simulation Modal -->
+    <div id="payment-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full modal-enter">
+            <h2 class="text-2xl font-bold mb-4">Complete Your Booking</h2>
+            <p class="mb-2">Total Fare: <span id="payment-fare" class="font-semibold"></span></p>
+            <p class="text-sm text-gray-500 mb-6">This is a simulated payment gateway for demonstration.</p>
+            <form id="payment-form">
+                <input type="text" placeholder="Card Number / UPI ID" class="w-full p-3 mb-4 border rounded-lg" required>
+                <input type="text" placeholder="Cardholder Name" class="w-full p-3 mb-4 border rounded-lg" required>
+                <div class="flex space-x-4">
+                    <input type="text" placeholder="MM/YY" class="w-1/2 p-3 mb-4 border rounded-lg" required>
+                    <input type="text" placeholder="CVC" class="w-1/2 p-3 mb-4 border rounded-lg" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700">Pay Now</button>
+                <button type="button" id="cancel-payment-btn" class="w-full mt-2 bg-gray-200 text-gray-700 p-3 rounded-lg font-semibold hover:bg-gray-300">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Generic Alert/Confirmation Modal (for SOS, success messages, etc.) -->
+    <div id="alert-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full modal-enter text-center">
+            <h3 id="alert-title" class="text-xl font-bold mb-2"></h3>
+            <p id="alert-message" class="text-gray-600 mb-6"></p>
+            <button id="alert-ok-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700">OK</button>
+        </div>
+    </div>
+
+    <!-- Chatbot Modal -->
+    <div id="chatbot-modal" class="hidden fixed bottom-24 right-6 w-96 h-[32rem] z-50">
+        <div class="bg-white w-full h-full rounded-2xl shadow-2xl flex flex-col modal-enter">
+            <div class="bg-indigo-600 text-white p-4 rounded-t-2xl flex justify-between items-center">
+                <h3 class="font-bold">Campus Connect Helper</h3>
+                <button id="close-chat-btn" class="font-bold text-xl">&times;</button>
+            </div>
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto bg-gray-50">
+                <!-- Chat messages will appear here -->
+            </div>
+            <div class="p-4 border-t">
+                <div id="chat-options" class="flex flex-wrap gap-2 mb-2">
+                    <!-- Options buttons will appear here -->
+                </div>
+                <div id="feedback-section" class="hidden">
+                     <textarea id="feedback-input" class="w-full p-2 border rounded-lg mb-2" placeholder="Please share your feedback..."></textarea>
+                     <button id="submit-feedback-btn" class="w-full bg-green-500 text-white p-2 rounded-lg">Submit Feedback</button>
+                     <button id="back-to-chat-btn" class="w-full mt-2 bg-gray-200 text-gray-700 p-2 rounded-lg">Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================= -->
+    <!--      JAVASCRIPT         -->
+    <!-- ======================= -->
+    <script type="module">
+        // IMPORTANT: In a real project, these would be in separate files.
+        // For simplicity, everything is here.
+
+        // ==============================================================
+        // 1. FIREBASE SETUP
+        // ==============================================================
+        // To get these credentials:
+        //    1. Go to https://firebase.google.com/ and create a new project.
+        //    2. In your project, create a new "Web App".
+        //    3. Firebase will give you a configuration object like this one.
+        //    4. Copy and paste it here.
+        //    5. In Firebase, go to "Authentication" -> "Sign-in method" and enable "Email/Password".
+        //    6. Go to "Firestore Database", create a database, and start in "test mode" for now.
+        // ==============================================================
+        
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            where,
+            doc,
+            updateDoc,
+            arrayUnion
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHE28s1J60S1HtWMUbv6_RnTgA4x9spMc",
+            authDomain: "community-ride-app.firebaseapp.com",
+            projectId: "community-ride-app",
+            storageBucket: "community-ride-app.firebasestorage.app",
+            messagingSenderId: "1013333185828",
+            appId: "1:1013333185828:web:7ffe9f1f8558cabaf5cfb1",
+            measurementId: "G-T0QYFL3Q1S"
+        };
+        // -----------------------------------------
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State variables
+        let currentUser = null;
+        let currentRideToBook = null;
+        let currentRideFare = 0;
+
+        // ==============================================================
+        // 2. DEMO DATA SEEDING
+        // ==============================================================
+        async function seedDatabaseWithDemoRides() {
+            const ridesQuery = query(ridesCollection);
+            const querySnapshot = await getDocs(ridesQuery);
+
+            // Only add demo rides if the collection is empty
+            if (querySnapshot.empty) {
+                console.log("No rides found. Seeding database with demo rides...");
+                const today = new Date();
+                const tomorrow = new Date();
+                tomorrow.setDate(today.getDate() + 1);
+
+                const demoRides = [
+                    {
+                        driverEmail: 'driver-one@campus.edu',
+                        driverId: 'demodriver1',
+                        pickup: 'Campus Library',
+                        dropoff: 'Engineering Building',
+                        time: new Date(today.setHours(17, 0, 0, 0)).toISOString(), // Today at 5:00 PM
+                        seatsAvailable: 3,
+                        chargePerKm: 12,
+                        passengers: []
+                    },
+                    {
+                        driverEmail: 'driver-two@campus.edu',
+                        driverId: 'demodriver2',
+                        pickup: 'South Dormitories',
+                        dropoff: 'Arts & Sciences Hall',
+                        time: new Date(tomorrow.setHours(9, 30, 0, 0)).toISOString(), // Tomorrow at 9:30 AM
+                        seatsAvailable: 2,
+                        chargePerKm: 10,
+                        passengers: []
+                    },
+                    {
+                        driverEmail: 'driver-three@campus.edu',
+                        driverId: 'demodriver3',
+                        pickup: 'Athletic Center',
+                        dropoff: 'Campus Library',
+                        time: new Date(tomorrow.setHours(14, 0, 0, 0)).toISOString(), // Tomorrow at 2:00 PM
+                        seatsAvailable: 4,
+                        chargePerKm: 11.5,
+                        passengers: []
+                    }
+                ];
+
+                for (const rideData of demoRides) {
+                    try {
+                        await addDoc(ridesCollection, rideData);
+                    } catch (e) {
+                        console.error("Error adding demo ride: ", e);
+                    }
+                }
+                 // Fetch rides again after seeding
+                fetchAllRides();
+            } else {
+                console.log("Database already has rides. Skipping seeding.");
+            }
+        }
+
+
+        // ==============================================================
+        // 3. UI & VIEW MANAGEMENT
+        // ==============================================================
+        
+        const views = {
+            auth: document.getElementById('auth-view'),
+            main: document.getElementById('main-app-view')
+        };
+        
+        const subViews = {
+            findRide: document.getElementById('find-ride-view'),
+            offerRide: document.getElementById('offer-ride-view'),
+            myRides: document.getElementById('my-rides-view'),
+        };
+
+        const modals = {
+            rideDetails: document.getElementById('ride-details-modal'),
+            payment: document.getElementById('payment-modal'),
+            alert: document.getElementById('alert-modal'),
+            chatbot: document.getElementById('chatbot-modal')
+        };
+        
+        // Function to switch between main views (Auth vs App)
+        function showView(viewName) {
+            Object.values(views).forEach(v => v.classList.remove('active'));
+            if (views[viewName]) {
+                views[viewName].classList.add('active');
+            }
+        }
+
+        // Function to switch between sub-views (Find Ride, Offer Ride etc.)
+        function showSubView(viewName) {
+            Object.values(subViews).forEach(v => v.classList.add('hidden'));
+            const targetView = document.getElementById(viewName);
+            if (targetView) {
+                targetView.classList.remove('hidden');
+            }
+        }
+        
+        // Show/hide modals
+        function showModal(modalName) { if(modals[modalName]) modals[modalName].classList.remove('hidden'); }
+        function hideModal(modalName) { if(modals[modalName]) modals[modalName].classList.add('hidden'); }
+
+        // Alert modal helper
+        function showAlert(title, message) {
+            document.getElementById('alert-title').textContent = title;
+            document.getElementById('alert-message').textContent = message;
+            showModal('alert');
+        }
+
+        // ==============================================================
+        // 3. AUTHENTICATION LOGIC
+        // ==============================================================
+
+        // Listen for authentication state changes
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                showView('main');
+                showSubView('find-ride-view');
+                seedDatabaseWithDemoRides(); // SEED DEMO DATA ON LOGIN
+                fetchAllRides();
+            } else {
+                currentUser = null;
+                showView('auth');
+            }
+        });
+
+        // Signup
+        document.getElementById('signup-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const authErrorEl = document.getElementById('auth-error');
+            
+            if (!email.endsWith('.edu') && !email.endsWith('.ac.in')) {
+                 authErrorEl.textContent = "Please use a valid campus email ending in .edu or .ac.in";
+                 return;
+            }
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(userCredential => {
+                    authErrorEl.textContent = "";
+                    // User is signed up and logged in automatically
+                })
+                .catch(error => {
+                    authErrorEl.textContent = error.message;
+                });
+        });
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(error => {
+                    document.getElementById('auth-error').textContent = error.message;
+                });
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // Toggle between login and signup forms
+        document.getElementById('show-signup').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('login-form-container').classList.add('hidden');
+            document.getElementById('signup-form-container').classList.remove('hidden');
+        });
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('signup-form-container').classList.add('hidden');
+            document.getElementById('login-form-container').classList.remove('hidden');
+        });
+
+
+        // ==============================================================
+        // 4. RIDE MANAGEMENT & FARE CALCULATION
+        // ==============================================================
+        const ridesCollection = collection(db, "rides");
+
+        // SIMULATE distance calculation. In a real app, use Google Maps API.
+        function getDistanceEstimate(pickup, dropoff) {
+            // Pseudo-distance based on string length for demonstration
+            const combinedLength = pickup.length + dropoff.length;
+            return Math.max(5, combinedLength * 0.75 + Math.random() * 5); // Returns a distance in km
+        }
+
+        function calculateFare(distance, chargePerKm) {
+            const rideFare = distance * chargePerKm;
+            const riderConvenienceFee = 2;
+            const appFee = 1;
+            return rideFare + riderConvenienceFee + appFee;
+        }
+
+        // Offer a ride
+        document.getElementById('offer-ride-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rideData = {
+                driverId: currentUser.uid,
+                driverEmail: currentUser.email,
+                pickup: document.getElementById('offer-pickup').value,
+                dropoff: document.getElementById('offer-dropoff').value,
+                time: new Date(document.getElementById('offer-time').value).toISOString(),
+                seatsAvailable: parseInt(document.getElementById('offer-seats').value),
+                chargePerKm: parseFloat(document.getElementById('offer-charge-per-km').value),
+                passengers: [] // Array of passenger UIDs
+            };
+
+            try {
+                await addDoc(ridesCollection, rideData);
+                showAlert("Success!", "Your ride has been posted.");
+                e.target.reset();
+                showSubView('find-ride-view');
+                fetchAllRides();
+            } catch (error) {
+                showAlert("Error", "Could not post your ride. Please try again.");
+                console.error("Error adding document: ", error);
+            }
+        });
+
+        // Render ride cards
+        function renderRideCards(rides, searchLocations = null) {
+            const container = document.getElementById('ride-listings');
+            container.innerHTML = '';
+            if (rides.length === 0) {
+                 container.innerHTML = '<p class="text-gray-500 text-center">No rides match your search. Try broadening your criteria!</p>';
+                 return;
+            }
+
+            rides.forEach(ride => {
+                const rideDate = new Date(ride.data.time);
+                const isFull = ride.data.seatsAvailable <= 0;
+                
+                let fareHtml = '';
+                let estimatedFare = 0;
+                if (searchLocations && searchLocations.pickup && searchLocations.dropoff) {
+                    const distance = getDistanceEstimate(searchLocations.pickup, searchLocations.dropoff);
+                    estimatedFare = calculateFare(distance, ride.data.chargePerKm);
+                    fareHtml = `<p class="text-lg font-bold text-green-600">~ ₹${estimatedFare.toFixed(2)}</p><p class="text-xs text-gray-500">Est. for your search</p>`;
+                } else {
+                    fareHtml = `<p class="text-lg font-bold text-green-600">₹${ride.data.chargePerKm.toFixed(2)}</p><p class="text-xs text-gray-500">per km</p>`;
+                }
+
+                const card = `
+                    <div class="border rounded-lg p-4 flex justify-between items-center ${isFull ? 'bg-gray-100 opacity-60' : 'bg-white'}">
+                        <div>
+                            <p class="font-bold">${ride.data.pickup} <span class="text-gray-500 font-normal">to</span> ${ride.data.dropoff}</p>
+                            <p class="text-sm text-gray-600">Driver: ${ride.data.driverEmail.split('@')[0]}</p>
+                            <p class="text-sm text-gray-500">${rideDate.toLocaleString()}</p>
+                        </div>
+                        <div class="text-right">
+                             ${fareHtml}
+                             <p class="text-sm mt-1">Seats left: ${ride.data.seatsAvailable}</p>
+                             <button data-ride-id="${ride.id}" data-estimated-fare="${estimatedFare}" class="view-details-btn mt-2 bg-indigo-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-indigo-600 ${isFull ? 'cursor-not-allowed' : ''}" ${isFull ? 'disabled' : ''}>
+                                ${isFull ? 'Full' : 'View Details'}
+                             </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+
+            // Add event listeners to new buttons
+            document.querySelectorAll('.view-details-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const button = e.currentTarget;
+                    showRideDetails(button.dataset.rideId, button.dataset.estimatedFare);
+                });
+            });
+        }
+        
+        // Fetch all rides
+        async function fetchAllRides() {
+             try {
+                const querySnapshot = await getDocs(ridesCollection);
+                const rides = querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+                renderRideCards(rides.filter(ride => new Date(ride.data.time) > new Date())); // Only show future rides
+            } catch (error) {
+                console.error("Error fetching rides: ", error);
+            }
+        }
+
+        // Search/Filter rides
+        document.getElementById('search-btn').addEventListener('click', async () => {
+            const pickupQuery = document.getElementById('search-pickup').value;
+            const dropoffQuery = document.getElementById('search-dropoff').value;
+            
+            if (!pickupQuery || !dropoffQuery) {
+                showAlert("Incomplete Search", "Please enter both a pickup and drop-off location.");
+                return;
+            }
+
+            try {
+                const querySnapshot = await getDocs(ridesCollection);
+                const allRides = querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+                
+                const filteredRides = allRides
+                    .filter(ride => new Date(ride.data.time) > new Date())
+                    .filter(ride => {
+                        const pickupMatch = ride.data.pickup.toLowerCase().includes(pickupQuery.toLowerCase());
+                        const dropoffMatch = ride.data.dropoff.toLowerCase().includes(dropoffQuery.toLowerCase());
+                        return pickupMatch || dropoffMatch; // More lenient search
+                    });
+                renderRideCards(filteredRides, { pickup: pickupQuery, dropoff: dropoffQuery });
+            } catch (error) {
+                console.error("Error filtering rides: ", error);
+            }
+        });
+
+        // Show Ride Details in Modal
+        async function showRideDetails(rideId, estimatedFare) {
+            currentRideToBook = rideId;
+            currentRideFare = parseFloat(estimatedFare);
+
+            try {
+                const querySnapshot = await getDocs(ridesCollection);
+                const ride = querySnapshot.docs.find(doc => doc.id === rideId);
+                if (!ride) return;
+
+                const data = ride.data();
+                const rideDate = new Date(data.time);
+                const isDriver = data.driverId === currentUser.uid;
+                const alreadyBooked = data.passengers.includes(currentUser.uid);
+                
+                let fareInfo;
+                let bookButtonHtml = '';
+                if (currentRideFare > 0) {
+                    fareInfo = `<p><strong>Estimated Fare:</strong> <span class="font-bold text-green-600">₹${currentRideFare.toFixed(2)}</span></p>
+                                <p class="text-xs text-gray-500">(Includes ₹3.00 convenience fee)</p>`;
+                    bookButtonHtml = `<button id="book-ride-btn" class="mt-4 w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700">Book Now for ₹${currentRideFare.toFixed(2)}</button>`;
+                } else {
+                    fareInfo = `<p><strong>Charge Rate:</strong> <span class="font-bold text-green-600">₹${data.chargePerKm.toFixed(2)}</span> per km</p>`;
+                    bookButtonHtml = `<p class="mt-4 text-center text-sm text-gray-500">Please search with a pickup and drop-off location to see the estimated fare and book.</p>`;
+                }
+
+                if(isDriver) bookButtonHtml = `<p class="mt-4 text-center text-sm text-indigo-600 font-semibold">This is your ride.</p>`;
+                if(alreadyBooked) bookButtonHtml = `<p class="mt-4 text-center text-sm text-green-600 font-semibold">You have already booked this ride.</p>`;
+                
+                const content = `
+                    <h2 class="text-2xl font-bold mb-2">${data.pickup} to ${data.dropoff}</h2>
+                    <p class="text-gray-600 mb-4">with ${data.driverEmail}</p>
+                    <div class="space-y-2">
+                        <p><strong>Time:</strong> ${rideDate.toLocaleString()}</p>
+                        <p><strong>Seats Available:</strong> ${data.seatsAvailable}</p>
+                        ${fareInfo}
+                    </div>
+                    ${bookButtonHtml}
+                    <button id="close-details-btn" class="w-full mt-2 bg-gray-200 text-gray-700 p-3 rounded-lg font-semibold hover:bg-gray-300">Close</button>
+                `;
+                document.getElementById('ride-details-content').innerHTML = content;
+                
+                // Add event listeners for modal buttons
+                if(document.getElementById('book-ride-btn')) {
+                    document.getElementById('book-ride-btn').addEventListener('click', () => {
+                        hideModal('rideDetails');
+                        document.getElementById('payment-fare').textContent = `₹${currentRideFare.toFixed(2)}`;
+                        showModal('payment');
+                    });
+                }
+                document.getElementById('close-details-btn').addEventListener('click', () => hideModal('rideDetails'));
+                
+                showModal('rideDetails');
+            } catch (error) {
+                console.error("Error getting ride details: ", error);
+            }
+        }
+        
+        // Fetch My Rides
+        async function fetchMyRides() {
+            if (!currentUser) return;
+            try {
+                const q = query(ridesCollection);
+                const querySnapshot = await getDocs(q);
+                const allRides = querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+
+                const ridesAsDriver = allRides.filter(ride => ride.data.driverId === currentUser.uid);
+                const ridesAsPassenger = allRides.filter(ride => ride.data.passengers.includes(currentUser.uid));
+                
+                const container = document.getElementById('my-rides-list');
+                container.innerHTML = '';
+
+                if (ridesAsDriver.length === 0 && ridesAsPassenger.length === 0) {
+                    container.innerHTML = `<p class="text-gray-500 text-center">You haven't offered or booked any rides yet.</p>`;
+                    return;
+                }
+                
+                if (ridesAsDriver.length > 0) {
+                    container.innerHTML += `<h3 class="text-lg font-semibold mb-2">Rides You're Offering:</h3>`;
+                    ridesAsDriver.forEach(ride => {
+                        container.innerHTML += `<div class="border rounded-lg p-3 bg-blue-50">
+                            <p class="font-bold">${ride.data.pickup} to ${ride.data.dropoff}</p>
+                            <p class="text-sm">${new Date(ride.data.time).toLocaleString()}</p>
+                            <p class="text-sm">Charge: ₹${ride.data.chargePerKm.toFixed(2)}/km | Passengers: ${ride.data.passengers.length}</p>
+                        </div>`;
+                    });
+                }
+
+                 if (ridesAsPassenger.length > 0) {
+                    container.innerHTML += `<h3 class="text-lg font-semibold mt-6 mb-2">Rides You've Booked:</h3>`;
+                    ridesAsPassenger.forEach(ride => {
+                        container.innerHTML += `<div class="border rounded-lg p-3 bg-green-50">
+                            <p class="font-bold">${ride.data.pickup} to ${ride.data.dropoff}</p>
+                            <p class="text-sm">Driver: ${ride.data.driverEmail}</p>
+                            <p class="text-sm">${new Date(ride.data.time).toLocaleString()}</p>
+                        </div>`;
+                    });
+                }
+
+            } catch(e) { console.error(e); }
+        }
+
+        // ==============================================================
+        // 5. PAYMENT SIMULATION
+        // ==============================================================
+        document.getElementById('payment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // This is where real payment integration would happen.
+            // For now, we just update the database directly.
+            
+            if (!currentRideToBook || !currentUser) return;
+
+            try {
+                const rideRef = doc(db, "rides", currentRideToBook);
+
+                // In a real app, you'd use a transaction here to be safe
+                const querySnapshot = await getDocs(ridesCollection);
+                const rideDoc = querySnapshot.docs.find(doc => doc.id === currentRideToBook);
+                const rideData = rideDoc.data();
+
+                if (rideData.seatsAvailable > 0) {
+                     await updateDoc(rideRef, {
+                        seatsAvailable: rideData.seatsAvailable - 1,
+                        passengers: arrayUnion(currentUser.uid)
+                    });
+                    hideModal('payment');
+                    showAlert("Booking Confirmed!", "Your seat is reserved. Happy travels!");
+                    fetchAllRides();
+                } else {
+                     hideModal('payment');
+                     showAlert("Booking Failed", "Sorry, this ride just filled up!");
+                }
+               
+            } catch (error) {
+                console.error("Error booking ride: ", error);
+                showAlert("Error", "Could not book your ride. Please try again.");
+            } finally {
+                currentRideToBook = null;
+                currentRideFare = 0;
+                e.target.reset();
+            }
+        });
+        document.getElementById('cancel-payment-btn').addEventListener('click', () => {
+             hideModal('payment');
+             currentRideToBook = null;
+             currentRideFare = 0;
+        });
+
+        // ==============================================================
+        // 6. SOS & CHATBOT
+        // ==============================================================
+        
+        // SOS Button
+        document.getElementById('sos-btn').addEventListener('click', () => {
+            // In a real app, this would get GPS location and send an alert
+            showAlert(
+                "SOS Activated", 
+                "In a real emergency, your location and ride details would be sent to campus security. Stay safe!"
+            );
+        });
+
+        // Chatbot
+        const chatBtn = document.getElementById('chat-btn');
+        const closeChatBtn = document.getElementById('close-chat-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatOptions = document.getElementById('chat-options');
+        const feedbackSection = document.getElementById('feedback-section');
+
+        const chatbotTree = {
+            start: {
+                message: "Hi there! How can I help you today?",
+                options: { "How do I find a ride?": "findRide", "How do I offer a ride?": "offerRide", "Report an issue": "issue", "Leave feedback": "feedback" }
+            },
+            findRide: {
+                message: "Go to the 'Find Ride' tab. Enter your desired pickup and drop-off locations and click Search. You can then view details and book a ride.",
+                options: { "Go back": "start" }
+            },
+            offerRide: {
+                message: "Go to the 'Offer Ride' tab. Fill in the details about your route, time, available seats, and fare, then click 'Post Ride'.",
+                options: { "Go back": "start" }
+            },
+            issue: {
+                message: "For immediate safety concerns, please use the SOS button. For other issues, please provide details in the feedback section.",
+                options: { "Leave feedback": "feedback", "Go back": "start" }
+            },
+        };
+        
+        function addChatMessage(message, sender = 'bot') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `p-2 rounded-lg mb-2 max-w-[80%] ${sender === 'bot' ? 'bg-gray-200 self-start' : 'bg-indigo-500 text-white self-end'}`;
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showChatOptions(nodeKey) {
+            const node = chatbotTree[nodeKey];
+            chatOptions.innerHTML = '';
+            feedbackSection.classList.add('hidden');
+            chatOptions.classList.remove('hidden');
+
+            addChatMessage(node.message);
+
+            Object.entries(node.options).forEach(([text, nextKey]) => {
+                const button = document.createElement('button');
+                button.className = 'bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full hover:bg-indigo-200';
+                button.textContent = text;
+                button.onclick = () => {
+                    addChatMessage(text, 'user');
+                    if (nextKey === 'feedback') {
+                        showFeedbackSection();
+                    } else {
+                        showChatOptions(nextKey);
+                    }
+                };
+                chatOptions.appendChild(button);
+            });
+        }
+        
+        function showFeedbackSection() {
+            chatOptions.classList.add('hidden');
+            feedbackSection.classList.remove('hidden');
+            addChatMessage("Please leave your feedback below. We appreciate your input!");
+        }
+
+        chatBtn.addEventListener('click', () => {
+            showChatOptions('start');
+            showModal('chatbot');
+        });
+        closeChatBtn.addEventListener('click', () => hideModal('chatbot'));
+        document.getElementById('back-to-chat-btn').addEventListener('click', () => showChatOptions('start'));
+        
+        document.getElementById('submit-feedback-btn').addEventListener('click', async () => {
+            const feedbackText = document.getElementById('feedback-input').value;
+            if (feedbackText.trim() === '') return;
+            try {
+                await addDoc(collection(db, "feedback"), {
+                    userId: currentUser ? currentUser.uid : 'anonymous',
+                    feedback: feedbackText,
+                    timestamp: new Date().toISOString()
+                });
+                document.getElementById('feedback-input').value = '';
+                addChatMessage("Thank you! Your feedback has been submitted.", 'bot');
+                setTimeout(() => showChatOptions('start'), 2000);
+            } catch(e) {
+                addChatMessage("Sorry, could not submit feedback. Please try again.", 'bot');
+            }
+        });
+
+        // ==============================================================
+        // 7. GENERAL EVENT LISTENERS
+        // ==============================================================
+
+        // Navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSubView(e.target.dataset.view);
+                if (e.target.dataset.view === 'find-ride-view') fetchAllRides();
+                if (e.target.dataset.view === 'my-rides-view') fetchMyRides();
+            });
+        });
+
+        // Close alert modal
+        document.getElementById('alert-ok-btn').addEventListener('click', () => hideModal('alert'));
+
+    </script>
+
+</body>
+</html>
+
+
+
